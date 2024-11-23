@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="back-button">
+        <a href="/" class="btn-back">← Back to List</a>
+    </div>
+    
+    <div class="website-details" id="websiteDetails">
+        <!-- Content will be loaded dynamically -->
+    </div>
+</div>
+
+<script>
+async function loadWebsiteDetails() {
+    const websiteId = window.location.pathname.split('/').pop();
+    try {
+        const response = await fetch(`http://localhost:5000/api/websites/${websiteId}`);
+        const website = await response.json();
+        
+        const detailsContainer = document.getElementById('websiteDetails');
+        detailsContainer.innerHTML = `
+            <div class="details-container">
+                <h1>${website.name}</h1>
+                <div class="details-content">
+                    <div class="details-image">
+                        <img src="http://localhost:5000${website.image_url}" alt="${website.name}">
+                    </div>
+                    <div class="details-info">
+                        <div class="details-url">
+                            <h3>Website URL:</h3>
+                            <a href="${website.url}" target="_blank">${website.url}</a>
+                        </div>
+                        <div class="details-explanation">
+                            <h3>Description:</h3>
+                            <p>${website.explanation}</p>
+                        </div>
+                        <div class="details-actions">
+                            <a href="${website.url}" target="_blank" class="btn-visit">Visit Website</a>
+                            <button onclick="deleteWebsite('${website._id}')" class="btn-delete">Delete Website</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    } catch (error) {
+        console.error('Error loading website details:', error);
+        document.getElementById('websiteDetails').innerHTML = `
+            <div class="error-message">
+                <h2>Error Loading Website Details</h2>
+                <p>The requested website could not be found.</p>
+            </div>
+        `;
+    }
+}
+
+async function deleteWebsite(id) {
+    if (confirm('Are you sure you want to delete this website?')) {
+        try {
+            const response = await fetch(`http://localhost:5000/api/websites/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                window.location.href = '/';
+            } else {
+                const error = await response.json();
+                alert(error.error || 'Error deleting website');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error deleting website');
+        }
+    }
+}
+
+// Load details when page loads
+loadWebsiteDetails();
+</script>
+
+<style>
+.back-button {
+    margin-bottom: 20px;
+}
+
+.btn-back {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.btn-back:hover {
+    text-decoration: underline;
+}
+
+.details-container {
+    background: white;
+    padding: 20px;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.details-container h1 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.details-content {
+    display: flex;
+    gap: 20px;
+}
+
+.details-image {
+    flex: 0 0 300px;
+}
+
+.details-image img {
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+}
+
+.details-info {
+    flex: 1;
+}
+
+.details-url, .details-explanation {
+    margin-bottom: 20px;
+}
+
+.details-url h3, .details-explanation h3 {
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.details-url a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.details-url a:hover {
+    text-decoration: underline;
+}
+
+.details-explanation p {
+    color: #444;
+    line-height: 1.6;
+}
+
+.details-actions {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.btn-visit, .btn-delete {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-visit {
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+}
+
+.btn-visit:hover {
+    background-color: #0056b3;
+}
+
+.btn-delete {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-delete:hover {
+    background-color: #c82333;
+}
+
+.error-message {
+    text-align: center;
+    padding: 20px;
+    background: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.error-message h2 {
+    color: #dc3545;
+    margin-bottom: 10px;
+}
+
+@media (max-width: 768px) {
+    .details-content {
+        flex-direction: column;
+    }
+    
+    .details-image {
+        flex: none;
+        margin-bottom: 20px;
+    }
+    
+    .details-actions {
+        flex-direction: column;
+    }
+    
+    .btn-visit, .btn-delete {
+        width: 100%;
+        text-align: center;
+    }
+}
+</style>
+{% endblock %}

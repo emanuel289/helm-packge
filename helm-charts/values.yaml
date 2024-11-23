@@ -1,0 +1,62 @@
+# Default values for web-app
+frontend:
+  name: frontend
+  replicaCount: 1
+  image:
+    repository: web-app-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: LoadBalancer
+    port: 8000
+  env:
+    - name: BACKEND_URL
+      value: "http://backend.default.svc.cluster.local:5000"
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+backend:
+  name: backend
+  replicaCount: 1
+  image:
+    repository: web-app-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: LoadBalancer
+    port: 5000
+  env:
+    - name: MONGODB_HOST
+      value: "mongodb"
+    - name: MONGODB_PORT
+      value: "27017"
+    - name: MONGODB_USER
+      value: "root"
+    - name: MONGODB_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: mongodb
+          key: mongodb-root-password
+    - name: MONGODB_DATABASE
+      value: "websitedb"
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+mongodb:
+  enabled: true
+  auth:
+    rootPassword: secretpassword
+  architecture: standalone
+  service:
+    type: ClusterIP
+    port: 27017
